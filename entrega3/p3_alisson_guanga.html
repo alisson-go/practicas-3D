@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dibujar puntos</title>
+    <title>Entrega3: Dibujar puntos (Alisson Guanga)</title>
 </head>
 <body onload="init()">
     <canvas id="myCanvas" width="1000px" height="500px"></canvas>
 </body>
 <script id="shaderFs" type="x-shader/x-fragment">
-    attribute vec4 color;
+    precision mediump float;
+    uniform vec4 u_color; 
     void main() {
-        gl_FragColor = color;
+       gl_FragColor = u_color;
     }
 </script>
 <script id="shaderVs" type="x-shader/x-vertex">
-	attribute vec4 a_Position; 
+	attribute vec4 a_Position;
+    attribute float a_Pointsize;
     void main() {
         gl_Position = a_Position;
-        gl_PointSize = 20.0;
+        gl_PointSize = a_Pointsize;
     }
 </script>
 <script>
@@ -30,8 +32,10 @@
             console.log("Failed to get the rendering context for WebGL");
             return;
         }
+
         // Set clear color
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        
         // Clear canvas
         gl.clear(gl.COLOR_BUFFER_BIT);
     
@@ -42,6 +46,7 @@
             console.log('Failed to intialize shaders.');
             return;
         }
+
         // Register event handler
         canvas.onmousedown = function(ev) {
         click(ev, gl, canvas);
@@ -49,7 +54,8 @@
     }
     
 
-    var emptyarray=[]
+    var emptyarray=[];
+    var color;
     function initShaders(gl, vs_source, fs_source) {
         // Compile shaders
         var vertexShader = makeShader(gl, vs_source, gl.VERTEX_SHADER);
@@ -98,34 +104,50 @@
         var x = (clickX - halfCanvasWidth) / halfCanvasWidth;
         var y = (halfCanvasHeight - clickY) / halfCanvasHeight;
         var xyz = [x, y, 0];
+        
       //añadir coordenadas  
         emptyarray.push(xyz);
         gl.clear(gl.COLOR_BUFFER_BIT);
+
         //coordenadas 
         var a_Position = gl.getAttribLocation(gl.program,"a_Position");
-        var a_Color = gl.getAttribLocation(gl.program)
-        //recorrer array
+        var a_Pointsize = gl.getAttribLocation(gl.program,"a_Pointsize");
+        var u_color = gl.getUniformLocation(gl.program,"u_color");
+        
+        //console.log(emptyarray);
+        //recorrer array:
         //3 condiciones: (ejecutar antes,condicion de parada,condicion despues del bucle)
-        for (var i=0;emptyarray.length;i++) {
-            //1ºpregunto donde está a_Position y despues lo mando
-            gl.vertexAttrib3fv(a_Position,emptyarray[i]);
-            //Mando coordenadas de 1 en 1 por eso va de 0 a 1
-            gl.drawArrays(gl.POINTS,0,1);
-            if (i[0]>0.7){
-                color=(1,1,1);
+        
+        for (var i=0;i<emptyarray.length;i++) {
+            //formula de la distancia:
+            var size=20*Math.sqrt(Math.pow(emptyarray[i][0],2)+Math.pow(emptyarray[i][1],2));
+            
+            //condiciones para colores:
+            if ((Math.abs(emptyarray[i][0])>0.7) || (Math.abs(emptyarray[i][1])>0.7)){
+                color=[1,1,1,1]; //blanco    
             }
-
+            else if(emptyarray[i][0]>0 && emptyarray[i][1]>0){ 
+                color=[0,1,0,1]; //verde    
+            }
+            else if(emptyarray[i][0]<0 && emptyarray[i][1]<0){ 
+                color=[0,0,1,1]; //azul
+                
+            }else if(emptyarray[i][0]<0 && emptyarray[i][1]>0){ 
+                color=[1,0,0,1]; //rojo
+                
+            }else{
+                color=[1,1,0,1]; //amarillo    
+            }
+            //1ºpregunto donde está a_Position y despues lo mando
+            gl.vertexAttrib1f(a_Pointsize,size);
+            gl.vertexAttrib3fv(a_Position,emptyarray[i]);
+            gl.uniform4fv(u_color,color);
+            //Mando coordenadas de 1 en 1, va de 0 a 1
+            gl.drawArrays(gl.POINTS,0,1);
         }
     }
- 
-    
-
-
 
 </script>
-
-
-
 
 
 </html>

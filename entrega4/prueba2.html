@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WebGL transformations: rotate</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+
+    <script id="shaderVs" type="x-shader/x-vertex">
+        attribute vec4 a_Position;
+        uniform mat4 u_Matrix;
+        void main() {
+            gl_Position = u_Matrix * a_Position;
+        }
+    </script>
+
+    <script id="shaderFs" type="x-shader/x-fragment">
+        void main() {
+            gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+        }
+    </script>
+
+    <script>
+        var gl;
+        var count = 0.0;
+
+        function init() {
+            // Get canvas object from the DOM
+            var canvas = document.getElementById("myCanvas");
+
+            // Init WebGL context
+            gl = canvas.getContext("webgl");
+            if (!gl) {
+                console.log("Failed to get the rendering context for WebGL");
+                return;
+            }
+
+            // Init shaders
+            var vs = document.getElementById('shaderVs').innerHTML;
+            var fs = document.getElementById('shaderFs').innerHTML;
+            initShaders(gl, vs, fs);
+
+            // Write the positions of vertices to a vertex shader
+            initVertexBuffers(gl);
+
+            // Set clear canvas color
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+            // Draw Scene
+            drawScene();
+        }
+
+        function drawScene() {
+            // Clear canvas
+            
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Calcualte position
+            var matrix = mat4.fromTranslation(mat4.create(), [0.0, 0.0, 0.0]);
+            var matrix2 = mat4.fromScaling(mat4.create(), [1.0, 1.0, 0.0]);
+            var matrix3 = mat4.fromXRotation(mat4.create(), count);
+
+            
+
+            // Set uniform value (u_Matrix) in vertex shader
+            var mvMatrixUniform = gl.getUniformLocation(gl.program, "u_Matrix");
+            gl.uniformMatrix4fv(mvMatrixUniform, false, matrix);
+
+            // Draw
+            gl.drawArrays(gl.TRIANGLES, 0,12 );
+
+            // Call drawScene again in the next browser repaint
+            count += 0.01;
+            requestAnimationFrame(drawScene);
+        }
+
+        function initVertexBuffers(gl) {
+            // Triangle
+            var dim = 2;
+            var vertices = [
+            -0.75, 0.75, -0.25, 0.75, -0.25, -0.75, // Triangle 1
+            -0.75, 0.75, -0.25, -0.75, -0.75, -0.75, // Triangle 2
+            0.25, 0.75, 0.75, 0.75, 0.75, -0.75, // Triangle 1
+            0.25, 0.75, 0.75, -0.75, 0.25, -0.75 
+            ];
+
+            // Create a buffer object
+            gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+            // Assign the vertices in buffer object to a_Position variable
+            var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+            gl.vertexAttribPointer(a_Position, dim, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(a_Position);
+            
+        }
+
+        function initShaders(gl, vs_source, fs_source) {
+            // Compile shaders
+            var vertexShader = makeShader(gl, vs_source, gl.VERTEX_SHADER);
+            var fragmentShader = makeShader(gl, fs_source, gl.FRAGMENT_SHADER);
+
+            // Create program
+            var glProgram = gl.createProgram();
+
+            // Attach and link shaders to the program
+            gl.attachShader(glProgram, vertexShader);
+            gl.attachShader(glProgram, fragmentShader);
+            gl.linkProgram(glProgram);
+
+            // Use program
+            gl.useProgram(glProgram);
+            gl.program = glProgram;
+        }
+
+        function makeShader(gl, src, type) {
+            var shader = gl.createShader(type);
+            gl.shaderSource(shader, src);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert("Error compiling shader: " + gl.getShaderInfoLog(shader));
+                return;
+            }
+            return shader;
+        }
+document.onkeydown = function(ev) {
+    var traslacion = [0.0, 0.0, 0.0]; //traslación (x,y,z)
+    var escalar = [1.0, 1.0, 0.0]; //escalar (x,y,z)
+    var girar = 0.0; //girar
+      //leer valor del cambio para cada una de las transformaciones
+    var step = new Number(document.getElementById("step").value);
+    var positivo = (+step); //el eje (positivo)
+    var negativo = (-step); //el eje (negativo)
+      //[x,y,z]=> [0,1,2] para cada caso (traslacion y escalar),*para girar es el eje z que esta definido con 'fromZRotation' arriba en la función drawscene.
+        switch (ev.keyCode) {
+        case 37: // Left (Traslación a la izquierda del eje X)
+            traslacion[0] += negativo;
+            break;
+        case 39: // Right (Traslación a la derecha del eje X)
+            traslacion[0] += positivo;
+            break;
+        case 38: // Up (Traslación hacia arriba del eje Y)
+            traslacion[1] += positivo;
+            break;
+        case 40: // Down (Traslación hacia abajo del eje Y)
+            traslacion[1] += negativo;
+            break;
+        case 33: // PageUp (Aumento de escala)
+            escalar[0] += positivo;
+            escalar[1] += positivo;
+            break;
+        case 34: // PageDown (Contracción de escala)
+            escalar[0] += negativo;
+            escalar[1] += negativo;
+            break;
+        case 36: // Home (girar negativo ejeZ)
+            girar += negativo;
+            break;
+        case 35: // End (girar positivo ejeZ)
+            girar += positivo;
+            break;
+      }
+    }
+
+
+        
+    </script>
+
+</head>
+
+<body onload="init()">
+    <canvas id="myCanvas" width="640" height="480"></canvas>
+    
+</body>
+
+</html>
