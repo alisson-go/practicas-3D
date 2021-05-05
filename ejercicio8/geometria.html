@@ -1,0 +1,55 @@
+<head>
+    <title>Three.js: Geometries</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/103/three.min.js"></script>
+    
+    <script>
+       function init() {
+          // Scene
+          var scene = new THREE.Scene();
+    
+          // Renderer
+          var renderer = new THREE.WebGLRenderer();
+          var sceneWidth = window.innerWidth;
+          var sceneHeight = window.innerHeight;
+          renderer.setSize(sceneWidth, sceneHeight);
+          document.body.appendChild(renderer.domElement);
+          // Sphere
+
+          var sphereGeometry = new THREE.SphereGeometry(4, 20, 20);
+
+          // Camera
+          var camera = new THREE.PerspectiveCamera(90, sceneWidth / sceneHeight, 0.01, 100);
+          camera.position.set(5, 5, 0);
+          camera.lookAt(scene.position);
+          var textura = new THREE.TextureLoader().load("earth.png");
+          var material = new THREE.MeshStandardMaterial({
+              map:textura
+          });
+          var mesh = new THREE.Mesh(sphereGeometry, material);
+          scene.add(mesh);
+          // Render
+          var renderer = new THREE.WebGLRenderer({
+            antialias : true
+            });
+          renderer.setSize(sceneWidth, sceneHeight);
+          document.body.appendChild(renderer.domElement);
+            function animate(mesh, renderer, scene, camera) {
+                mesh.rotation.x += 0.01;
+                mesh.rotation.y += 0.02;
+                renderer.render(scene, camera);
+                requestAnimationFrame(function() {
+                    animate(mesh, renderer, scene, camera);
+                });
+            }
+        }    
+
+    </script>
+    </head>
+    
+    <body onload="init()">
+    </body>
+    
+    </html>
+    
+    
