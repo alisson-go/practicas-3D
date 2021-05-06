@@ -10,7 +10,7 @@
         attribute vec4 a_Position;
         attribute vec2 a_TexCoord;
         attribute vec3 a_Normal;
-        attribute vec3 a_Color;
+
 
         uniform mat4 u_pMatrix;
         uniform mat4 u_vMatrix;
@@ -18,14 +18,12 @@
         uniform mat4 u_NormalMatrix;
 
         //varying es para pasar las variables y hay que poner en los ambos iguales.
-        varying vec4 v_Color;
         varying vec2 v_TexCoord;
         varying vec4 transformedNormal;
 
         void main() {
           gl_Position = u_pMatrix * u_vMatrix * u_mvMatrix * a_Position;
           v_TexCoord = a_TexCoord;
-          v_Color = vec4(a_Color, 1.0);
           transformedNormal = u_NormalMatrix * vec4(a_Normal, 1.0);
         }
     </script>
@@ -40,7 +38,6 @@
         uniform vec3 u_LightColor;
         uniform vec3 u_LightDirection;
         
-        varying vec4 v_Color;
         varying vec2 v_TexCoord;
         varying vec4 transformedNormal;
 
@@ -52,9 +49,9 @@
           float nDotL = max(dot(u_LightDirection, normal), 0.0);
           //float nDotL = max(dot(u_LightDirection, normalize(transformedNormal.xyz)), 0.0);
           //luz ambiental y difusa
-          vec3 ambient = u_AmbientLight * v_Color.rgb;
-          vec3 diffuse = u_LightColor * v_Color.rgb * nDotL; // 
-          gl_FragColor = vec4(diffuse + ambient, v_textura); //
+          vec3 ambient = u_AmbientLight * v_textura.rgb;
+          vec3 diffuse = u_LightColor * v_textura.rgb * nDotL; // 
+          gl_FragColor = vec4(diffuse + ambient, v_textura.a); //
         }
     </script>
 
@@ -164,9 +161,7 @@
             gl.enableVertexAttribArray(vertexColorAttribute);
             gl.vertexAttribPointer(vertexColorAttribute, 2, gl.FLOAT, false, 4 * (3 + 2), 4 * 3);
             
-            var vertexNormalAttribute = gl.getAttribLocation(gl.program, "a_Normal");
-            gl.enableVertexAttribArray(vertexNormalAttribute);
-            gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
 
 
             // Write indexes in gl.ELEMENT_ARRAY_BUFFER
@@ -176,9 +171,10 @@
             gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(Normals), gl.STATIC_DRAW);
 
-            var vertexColorAttribute = gl.getAttribLocation(gl.program, "a_Color");
-	        gl.enableVertexAttribArray(vertexColorAttribute);
-	        gl.vertexAttribPointer(vertexColorAttribute, 3, gl.FLOAT, false, 4 * (3 + 2), 4 * 3);
+            var vertexNormalAttribute = gl.getAttribLocation(gl.program, "a_Normal");
+            gl.enableVertexAttribArray(vertexNormalAttribute);
+            gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 4*3, 0);
+
         }
         
         function initProjection(gl, canvas) {
@@ -193,15 +189,6 @@
             var vMatrix = mat4.lookAt(mat4.create(), [0, 0, 3], [0, 0, 0], [0, 1, 0]);
             gl.uniformMatrix4fv(vMatrixUniform, false, vMatrix);
 
-            // Write u_LightColor
-            var lightColor = [ 1.0, 1.0, 1.0 ]; // white (luz blanca)
-            var lightColorUniform = gl.getUniformLocation(gl.program, "u_LightColor");
-            gl.uniform3fv(lightColorUniform, lightColor);
-
-            // Write u_AmbientLight (luz ambiental)
-           // var ambientLight = [ 0.1, 0.1, 0.1 ];
-            //var ambientLightUniform = gl.getUniformLocation(gl.program, "u_AmbientLight");
-            //gl.uniform3fv(ambientLightUniform, ambientLight);
 
             // Write u_LightDirection
             var x = document.getElementById("x").value;
@@ -212,7 +199,13 @@
             var r = document.getElementById("r").value;
 	        var g = document.getElementById("g").value;
 	        var b = document.getElementById("b").value;
-	        var ambientLight = [ r, g, b ];
+
+            // Write u_LightColor
+            var lightColor = [ r, g, b ]; // white (luz blanca)
+            var lightColorUniform = gl.getUniformLocation(gl.program, "u_LightColor");
+            gl.uniform3fv(lightColorUniform, lightColor);
+
+	        var ambientLight = [ 0.1, 0.1, 0.1 ];
 	        var ambientLightUniform = gl.getUniformLocation(gl.program, "u_AmbientLight");
 	        gl.uniform3fv(ambientLightUniform, ambientLight);
 	
