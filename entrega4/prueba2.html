@@ -152,8 +152,9 @@
           var step = new Number(document.getElementById("step").value);
           var positivo = (+step); //el eje (positivo)
           var negativo = (-step); //el eje (negativo)
-              switch (ev.keyCode) {
+            switch (ev.keyCode) {
               case 37: // Left (Traslación a la izquierda del eje X)
+              console.log("entrooo")
                   transx += negativo;
                   break;
               case 39: // Right (Traslación a la derecha del eje X)
@@ -179,8 +180,17 @@
               case 35: // End (girar positivo ejeZ)
                   girar += positivo;
                   break;
+              case 83: // +
+                    console.log("entrooo")
+                    transx += positivo;
+                    //transx += negativo;
+                    break;
+              
                 }
-          }
+            }
+        
+        
+        
 
 
 
