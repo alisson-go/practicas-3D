@@ -9,11 +9,14 @@
 <script>
    var stepX = 0.15;
    var stepY = 0.25;
+   var vel=0;
    var usuario;
    var CPU;
    var puntos_usuario=0;
    var puntos_CPU=0;
    function init() {
+      
+
       var scene = new THREE.Scene();
       var sceneWidth = window.innerWidth - 20;
       var sceneHeight = window.innerHeight - 20;
@@ -50,6 +53,7 @@
       animate(sphere, borders, renderer, scene, camera);
       mover_teclado();
    }
+
    function mover_teclado(){
       document.onkeydown = function(ev) {
         switch (ev.keyCode) {
@@ -73,9 +77,12 @@
    function animate(sphere, borders, renderer, scene, camera) {
       checkCollision(sphere, borders);
       
-      sphere.position.x += stepX;
-      sphere.position.y += stepY;
+      sphere.position.x += (stepX * vel);
+      sphere.position.y += (stepY * vel);
 
+      if (CPU.position.x < 3 || CPU.position.x > -3) {
+         CPU.position.x = (0.1-(sphere.position.x*0.70));
+      }
       renderer.render(scene, camera);
 
       requestAnimationFrame(function() {
@@ -98,17 +105,20 @@
       return light;
    }
    function comenzar(){
-      if (player_User.position.x < 1 || player_CPU.position.x <1){
+      if (usuario.position.x < 1 || CPU.position.x <1){
         stepX=0.20;
         stepY=0.18;
-      } else if (player_User.position.x > 1 || player_CPU.position.x >1) {
+      } else if (usuario.position.x > 1 || CPU.position.x >1) {
         stepX=0.30;
         stepY=0.25;
       }
    }
    function getSphere() {
       var geometry = new THREE.SphereGeometry(1, 20, 20);
-      var material = new THREE.MeshNormalMaterial();
+      var texture = new THREE.TextureLoader().load("ball.jpg");
+      var material = new THREE.MeshPhongMaterial({
+       map : texture
+      });
       var mesh = new THREE.Mesh(geometry, material);
       mesh.position.z = 1;
       mesh.castShadow = true;
@@ -136,7 +146,7 @@
    }
 
    function getWoodMaterial() {
-      var texture = new THREE.TextureLoader().load("wood.png");
+      var texture = new THREE.TextureLoader().load("fondo1.jpg");
       var material = new THREE.MeshPhysicalMaterial({
          map : texture
       });
@@ -161,9 +171,25 @@
             if (collisionResults[0].object.name == "left" || collisionResults[0].object.name == "right") {
                stepX *= -1;
             }
-            if (collisionResults[0].object.name == "down" || collisionResults[0].object.name == "top") {
+            //colisiones detectadas en la parte del user
+            if (collisionResults[0].object.name == "down") {
+               stepY *=-1;
+               if (usuario.position.x <1){
+                  vel = 0.85;
+               }else if(usuario.position.x>1){
+                  vel=1.10;
+               }
+            }
+            //colisiones detectados en la parte del CPU
+            if (collisionResults[0].object.name == "top") {
                stepY *= -1;
-            }            
+               if (CPU.position.x > 1){
+                  vel = 1.05;
+               } else if(CPU.position.x < 1){
+                  vel=0.85;
+               }
+            }   
+                   
             break;
          }
       }
@@ -172,6 +198,7 @@
 </head>
 
 <body onload="init()">
+   JUEGO PONG
 </body>
 
 </html>
