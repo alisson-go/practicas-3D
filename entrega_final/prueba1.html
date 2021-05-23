@@ -12,7 +12,7 @@
    var usuario;
    var CPU;
    var puntos_usuario=0;
-   var punto_CPU=0;
+   var puntos_CPU=0;
    function init() {
       var scene = new THREE.Scene();
       var sceneWidth = window.innerWidth - 20;
@@ -48,8 +48,28 @@
       var borders = [ leftBorder, rightBorder, CPU, user ];
 
       animate(sphere, borders, renderer, scene, camera);
+      mover_teclado();
    }
-
+   function mover_teclado(){
+      document.onkeydown = function(ev) {
+        switch (ev.keyCode) {
+         case 32: //tecla espacio para (re)iniciar el juego
+             comenzar();
+             resetScore(scene);
+             resetPosition(scene);
+           break;
+         case 37: // tecla para ir a la derecha
+            if(player_User.position.x > -3){
+              player_User.position.x -= 0.35;
+            }
+          break;
+         case 39: //tecla para ir a la izquierda
+            if(player_User.position.x < 3){
+               player_User.position.x += 0.35;
+            }
+         }
+      }  
+   }
    function animate(sphere, borders, renderer, scene, camera) {
       checkCollision(sphere, borders);
       
@@ -77,7 +97,15 @@
       light.shadow.mapSize.height = 4096;
       return light;
    }
-
+   function comenzar(){
+      if (player_User.position.x < 1 || player_CPU.position.x <1){
+        stepX=0.20;
+        stepY=0.18;
+      } else if (player_User.position.x > 1 || player_CPU.position.x >1) {
+        stepX=0.30;
+        stepY=0.25;
+      }
+   }
    function getSphere() {
       var geometry = new THREE.SphereGeometry(1, 20, 20);
       var material = new THREE.MeshNormalMaterial();
