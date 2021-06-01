@@ -36,7 +36,7 @@
       var leftBorder = getBorder("left", 1, 20, 2, -5, 0, 0);
       var rightBorder = getBorder("right", 1, 20, 2, 5, 0, 0);
       CPU = getBorder("top", 3, 1, 2, 0, 10, 0);
-      user = getBorder("down", 4, 1, 2, 0, -9.5, 0);
+      usuario = getBorder("down", 4, 1, 2, 0, -9.5, 0);
       var sphere = getSphere();
       var floor = getFloor();
 
@@ -44,32 +44,34 @@
       scene.add(leftBorder);
       scene.add(rightBorder);
       scene.add(CPU);
-      scene.add(user);
+      scene.add(usuario);
       scene.add(sphere);
       scene.add(floor);
 
-      var borders = [ leftBorder, rightBorder, CPU, user ];
+      var borders = [ leftBorder, rightBorder, CPU, usuario ];
 
-      animate(sphere, borders, renderer, scene, camera);
       mover_teclado();
+      animate(sphere, borders, renderer, scene, camera);
+      
    }
 
    function mover_teclado(){
       document.onkeydown = function(ev) {
         switch (ev.keyCode) {
          case 32: //tecla espacio para (re)iniciar el juego
+            console.log("espacio");
              comenzar();
-             resetScore(scene);
-             resetPosition(scene);
+            // resetScore(scene);
+             //resetPosition(scene);
            break;
          case 37: // tecla para ir a la derecha
-            if(player_User.position.x > -3){
-              player_User.position.x -= 0.35;
+            if(usuario.position.x > -3){
+              usuario.position.x -= 0.35;
             }
           break;
          case 39: //tecla para ir a la izquierda
-            if(player_User.position.x < 3){
-               player_User.position.x += 0.35;
+            if(usuario.position.x < 3){
+               usuario.position.x += 0.35;
             }
          }
       }  
@@ -105,7 +107,7 @@
       return light;
    }
    function comenzar(){
-      if (usuario.position.x < 1 || CPU.position.x <1){
+      if ((usuario.position.x < 1) ||( CPU.position.x > 1)){
         stepX=0.20;
         stepY=0.18;
       } else if (usuario.position.x > 1 || CPU.position.x >1) {
