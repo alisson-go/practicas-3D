@@ -7,8 +7,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/103/three.min.js"></script>
 
 <script>
-   var stepX = 0.15;
-   var stepY = 0.25;
+   var ejeX = 0.15;
+   var ejeY = 0.25;
    var vel=0;
    var usuario;
    var CPU;
@@ -18,8 +18,10 @@
       
 
       var scene = new THREE.Scene();
+     // scene.background = new.THREE.Color(0x2a3b4c);
       var sceneWidth = window.innerWidth - 20;
       var sceneHeight = window.innerHeight - 20;
+      
 
       var camera = new THREE.PerspectiveCamera(90, sceneWidth / sceneHeight, 0.01, 100);
       camera.position.set(0, -10, 15);
@@ -33,13 +35,18 @@
       document.body.appendChild(renderer.domElement);
 
       var light = getLight();
-      var leftBorder = getBorder("left", 1, 20, 2, -5, 0, 0);
-      var rightBorder = getBorder("right", 1, 20, 2, 5, 0, 0);
+      var leftBorder = getBorder("left",1, 20, 2.5, -5, 0, 0);
+      var rightBorder = getBorder("right", 1, 20, 2.5, 5, 0, 0);
       CPU = getBorder("top", 3, 1, 2, 0, 10, 0);
       usuario = getBorder("down", 4, 1, 2, 0, -9.5, 0);
       var sphere = getSphere();
       var floor = getFloor();
-
+      /*FONDO*/
+      var fondo = 'madera.jpg';
+      new THREE.TextureLoader().load(fondo, function(img_madera){
+         scene.background = img_madera;
+      });
+      
       scene.add(light);
       scene.add(leftBorder);
       scene.add(rightBorder);
@@ -50,27 +57,29 @@
 
       var borders = [ leftBorder, rightBorder, CPU, usuario ];
 
-      mover_teclado();
+      mover_teclado(scene);
       animate(sphere, borders, renderer, scene, camera);
       
    }
 
-   function mover_teclado(){
+   function mover_teclado(scene){
       document.onkeydown = function(ev) {
         switch (ev.keyCode) {
          case 32: //tecla espacio para (re)iniciar el juego
             console.log("espacio");
              comenzar();
-            // resetScore(scene);
-             //resetPosition(scene);
+             puntos_CPU = 0;
+             puntos_usuario = 0;
+             CPU.position.x = 0;
+             usuario.position = 0;
            break;
          case 37: // tecla para ir a la derecha
             if(usuario.position.x > -3){
-              usuario.position.x -= 0.35;
+              usuario.position.x -= 0.30;
             }
           break;
          case 39: //tecla para ir a la izquierda
-            if(usuario.position.x < 3){
+            if(usuario.position.x < 3.5){
                usuario.position.x += 0.35;
             }
          }
@@ -79,8 +88,8 @@
    function animate(sphere, borders, renderer, scene, camera) {
       checkCollision(sphere, borders);
       
-      sphere.position.x += (stepX * vel);
-      sphere.position.y += (stepY * vel);
+      sphere.position.x += (ejeX * vel);
+      sphere.position.y += (ejeY * vel);
 
       if (CPU.position.x < 3 || CPU.position.x > -3) {
          CPU.position.x = (0.1-(sphere.position.x*0.70));
@@ -91,7 +100,7 @@
          animate(sphere, borders, renderer, scene, camera);
       });
    }
-
+   
    function getLight() {
       var light = new THREE.DirectionalLight();
       light.position.set(4, 4, 4);
@@ -106,13 +115,14 @@
       light.shadow.mapSize.height = 4096;
       return light;
    }
+   //coordenadas de inicio
    function comenzar(){
-      if ((usuario.position.x < 1) ||( CPU.position.x > 1)){
-        stepX=0.20;
-        stepY=0.18;
+      if ((usuario.position.x < 1) ||( CPU.position.x < 1)){
+        ejeX=0.22;//
+        ejeY=0.15;//
       } else if (usuario.position.x > 1 || CPU.position.x >1) {
-        stepX=0.30;
-        stepY=0.25;
+        ejeX=0.32;//
+        ejeY=0.25;//
       }
    }
    function getSphere() {
@@ -155,10 +165,35 @@
       material.map.wrapS = material.map.wrapT = THREE.RepeatWrapping;
       material.map.repeat.set(4, 4);
       material.side = THREE.DoubleSide;
-
       return material;
    }
+   function contar_puntos(sphere,scene){
+      if(sphere.position.y > CPU.position.y){
+         //le sumo un punto
+         puntos_usuario += 1;
+         sphere.position.x = 0.0;
+         sphere.position.y = 0.0;
 
+      }
+   }
+   function mostrar_puntos(name,scene){
+      var texto = "Jugador:  " + puntos_usuario + "\nPCU: " + puntos_CPU;
+   }
+   function ganador(scene){
+      //En el caso de que el jugador gane
+      if (puntos_usuario == 5 & puntos_CPU < 5){
+         jugador_ganador = "Jugador";
+      }else if (puntos_CPU == 5 & puntos_usuario ==5){
+         jugador_ganador = "EMPATE";
+      }
+      //En el caso de que la CPU gane
+      if (puntos_usuario < 5 & puntos_CPU == 5){
+         jugador_ganador = "CPU";
+      }else if (puntos_CPU == 5 & puntos_usuario ==5){
+         jugador_ganador = "EMPATE";
+      }
+   }
+   //detección de colisiones
    function checkCollision(sphere, borders) {
       var originPosition = sphere.position.clone();
 
@@ -171,36 +206,40 @@
          if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
             // Collision detected
             if (collisionResults[0].object.name == "left" || collisionResults[0].object.name == "right") {
-               stepX *= -1;
+               ejeX *= -1;
             }
-            //colisiones detectadas en la parte del user
+            //collision detected in USER
             if (collisionResults[0].object.name == "down") {
-               stepY *=-1;
+               ejeY *=-1;
                if (usuario.position.x <1){
                   vel = 0.85;
                }else if(usuario.position.x>1){
                   vel=1.10;
                }
             }
-            //colisiones detectados en la parte del CPU
+            //collision detected in CPU
             if (collisionResults[0].object.name == "top") {
-               stepY *= -1;
+               ejeY *= -1;
                if (CPU.position.x > 1){
                   vel = 1.05;
                } else if(CPU.position.x < 1){
                   vel=0.85;
                }
             }   
-                   
-            break;
          }
       }
    }
+
+      
+  
 </script>
+
 </head>
 
 <body onload="init()">
-   JUEGO PONG
+   <br>
+   <button type="button" id="cambio_textura" name="boton">CAMBIE LA TEXTURA</button>
+   <br>
 </body>
 
 </html>
